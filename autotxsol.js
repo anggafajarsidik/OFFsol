@@ -15,6 +15,11 @@ async function loadAddresses() {
   return addresses;
 }
 
+async function getBalance(connection, publicKey) {
+  const balance = await connection.getBalance(publicKey);
+  return balance / LAMPORTS_PER_SOL;
+}
+
 async function main() {
   const privateKeys = await loadPrivateKey();
   const addresses = await loadAddresses();
@@ -61,6 +66,8 @@ async function main() {
   );
 
   const sender = Keypair.fromSecretKey(bs58.decode(privateKeys[0]));
+  const balance = await getBalance(connection, sender.publicKey);
+  console.log(`Current balance of sender (${sender.publicKey.toString()}): ${balance} SOL`);
 
   const sendTransactionWithRetry = async (transaction) => {
     let confirmed = false;
@@ -80,6 +87,8 @@ async function main() {
     }
   };
 
+  const allTransactions = [];
+
   if (useList) {
     for (let address of addresses) {
       const recipient = new PublicKey(address);
@@ -94,7 +103,7 @@ async function main() {
         );
 
         console.log(`Sending transaction to ${recipient.toString()} (${i + 1}/${numTransactionsPerAddress})`);
-        await sendTransactionWithRetry(transaction);
+        allTransactions.push(sendTransactionWithRetry(transaction));
         console.log(`Transaction ${i + 1} to ${recipient.toString()} sent`);
 
         if (i < numTransactionsPerAddress - 1) {
@@ -121,7 +130,7 @@ async function main() {
       );
 
       console.log(`Sending transaction to ${recipient.toString()} (${i + 1}/${numTransactionsPerAddress})`);
-      await sendTransactionWithRetry(transaction);
+      allTransactions.push(sendTransactionWithRetry(transaction));
       console.log(`Transaction ${i + 1} to ${recipient.toString()} sent`);
 
       if (i < numTransactionsPerAddress - 1) {
@@ -129,6 +138,12 @@ async function main() {
       }
     }
   }
+
+  await Promise.all(allTransactions);
+  console.log("All transactions have been completed!");
+
+  const finalBalance = await getBalance(connection, sender.publicKey);
+  console.log(`Final balance of sender (${sender.publicKey.toString()}): ${finalBalance} SOL`);
 }
 
 main().catch(console.error);
