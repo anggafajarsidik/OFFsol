@@ -19,7 +19,7 @@ async function main() {
   const privateKeys = await loadPrivateKey();
   const addresses = await loadAddresses();
 
-  const { network, amount, numTransactions, delay, useList } = await inquirer.prompt([
+  const { network, amount, delay, useList } = await inquirer.prompt([
     {
       type: 'list',
       name: 'network',
@@ -31,12 +31,6 @@ async function main() {
       name: 'amount',
       message: 'Enter amount to send in SOL:',
       validate: input => !isNaN(input) && input > 0 ? true : 'Please enter a valid amount'
-    },
-    {
-      type: 'input',
-      name: 'numTransactions',
-      message: 'Enter number of transactions:',
-      validate: input => !isNaN(input) && input > 0 ? true : 'Please enter a valid number'
     },
     {
       type: 'input',
@@ -60,22 +54,35 @@ async function main() {
       : 'https://api.devnet.solana.com'
   );
 
-  for (let i = 0; i < numTransactions; i++) {
-    let recipient;
+  const sender = Keypair.fromSecretKey(bs58.decode(privateKeys[0]));
 
-    if (useList) {
-      recipient = new PublicKey(addresses[i % addresses.length]);
-    } else {
-      const { singleAddress } = await inquirer.prompt({
-        type: 'input',
-        name: 'singleAddress',
-        message: 'Enter the recipient address:',
-        validate: input => PublicKey.isOnCurve(new PublicKey(input)) ? true : 'Please enter a valid Solana address'
-      });
-      recipient = new PublicKey(singleAddress);
+  if (useList) {
+    for (let i = 0; i < addresses.length; i++) {
+      const recipient = new PublicKey(addresses[i]);
+      const transaction = new Transaction().add(
+        SystemProgram.transfer({
+          fromPubkey: sender.publicKey,
+          toPubkey: recipient,
+          lamports: amount * LAMPORTS_PER_SOL
+        })
+      );
+
+      console.log(`Sending transaction to ${recipient.toString()}`);
+      await sendAndConfirmTransaction(connection, transaction, [sender]);
+      console.log(`Transaction sent to ${recipient.toString()}`);
+
+      if (i < addresses.length - 1) {
+        await new Promise(resolve => setTimeout(resolve, delay * 1000));
+      }
     }
-
-    const sender = Keypair.fromSecretKey(bs58.decode(privateKeys[i % privateKeys.length]));
+  } else {
+    const { singleAddress } = await inquirer.prompt({
+      type: 'input',
+      name: 'singleAddress',
+      message: 'Enter the recipient address:',
+      validate: input => PublicKey.isOnCurve(new PublicKey(input)) ? true : 'Please enter a valid Solana address'
+    });
+    const recipient = new PublicKey(singleAddress);
 
     const transaction = new Transaction().add(
       SystemProgram.transfer({
@@ -85,15 +92,9 @@ async function main() {
       })
     );
 
-    console.log(`Sending transaction ${i + 1} to ${recipient.toString()}`);
-
+    console.log(`Sending transaction to ${recipient.toString()}`);
     await sendAndConfirmTransaction(connection, transaction, [sender]);
-
-    console.log(`Transaction ${i + 1} sent to ${recipient.toString()}`);
-
-    if (i < numTransactions - 1) {
-      await new Promise(resolve => setTimeout(resolve, delay * 1000));
-    }
+    console.log(`Transaction sent to ${recipient.toString()}`);
   }
 }
 
