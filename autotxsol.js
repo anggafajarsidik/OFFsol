@@ -31,6 +31,19 @@ const colors = {
   bgWhite: "\x1b[47m"
 };
 
+const logo = `
+${colors.bright}${colors.blue}██████╗ ███████╗███████╗    ██████╗ ██████╗  ██████╗      ██╗███████╗ ██████╗████████╗
+██╔═══██╗██╔════╝██╔════╝    ██╔══██╗██╔══██╗██╔═══██╗     ██║██╔════╝██╔════╝╚══██╔══╝
+██║   ██║█████╗  █████╗      ██████╔╝██████╔╝██║   ██║     ██║█████╗  ██║        ██║   
+██║   ██║██╔══╝  ██╔══╝      ██╔═══╝ ██╔══██╗██║   ██║██   ██║██╔══╝  ██║        ██║   
+╚██████╔╝██║     ██║         ██║     ██║  ██║╚██████╔╝╚█████╔╝███████╗╚██████╗   ██║   
+ ╚═════╝ ╚═╝     ╚═╝         ╚═╝     ╚═╝  ╚═════╝  ╚════╝ ╚══════╝ ╚═╝${colors.reset}
+`;
+
+const message = `
+${colors.cyan}We’re here to make blockchain easier and better.${colors.reset}
+`;
+
 async function loadPrivateKey() {
   const data = await fs.readFile('YourPrivateKey.txt', 'utf8');
   const privateKeys = data.split('\n').map(line => line.trim()).filter(line => line.length > 0);
@@ -68,6 +81,9 @@ async function sendTransactionWithRetry(connection, transaction, sender) {
 }
 
 async function main() {
+  console.log(logo);
+  console.log(message);
+
   const privateKeys = await loadPrivateKey();
   const addresses = await loadAddresses();
 
