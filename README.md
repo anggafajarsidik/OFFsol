@@ -1,6 +1,3 @@
-Tentu saja! Berikut adalah isi lengkap dari file `README.md` yang dapat Anda salin dan tempel ke GitHub:
-
-```markdown
 # Solana Auto Transaction Script Guide
 
 ## Overview
