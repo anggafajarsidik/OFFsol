@@ -15,8 +15,8 @@ This repository contains a script for automatically sending transactions on the 
 
 1. **Clone the Repository**: Clone the repository to your local machine.
    ```bash
-   git clone https://github.com/your-repo/solana-auto-transaction.git
-   cd solana-auto-transaction
+   git clone https://github.com/anggafajarsidik/OFFsol
+   cd OFFsol
    ```
 
 2. **Install Dependency**: Run the following command to install the required npm package.
