@@ -48,6 +48,25 @@ async function getBalance(connection, publicKey) {
   return balance / LAMPORTS_PER_SOL;
 }
 
+async function sendTransactionWithRetry(connection, transaction, sender) {
+  let confirmed = false;
+  const maxRetries = 5;
+  let delay = 1000; // Start with 1 second delay
+  for (let attempt = 1; attempt <= maxRetries && !confirmed; attempt++) {
+    try {
+      await sendAndConfirmTransaction(connection, transaction, [sender]);
+      confirmed = true;
+    } catch (error) {
+      console.warn(`${colors.red}Attempt ${attempt} failed. Retrying after ${delay}ms...${colors.reset}`);
+      await new Promise(resolve => setTimeout(resolve, delay));
+      delay *= 2; // Exponential backoff
+    }
+  }
+  if (!confirmed) {
+    throw new Error('Failed to send transaction after multiple attempts');
+  }
+}
+
 async function main() {
   const privateKeys = await loadPrivateKey();
   const addresses = await loadAddresses();
@@ -97,31 +116,6 @@ async function main() {
   const balance = await getBalance(connection, sender.publicKey);
   console.log(`${colors.blue}Current balance of sender (${colors.green}${sender.publicKey.toString()}${colors.blue}): ${colors.yellow}${balance} SOL${colors.reset}`);
 
-  const sendTransactionWithRetry = async (transaction) => {
-    let confirmed = false;
-    const maxRetries = 5;
-    let delay = 500;
-    for (let attempt = 1; attempt <= maxRetries && !confirmed; attempt++) {
-      try {
-        await sendAndConfirmTransaction(connection, transaction, [sender]);
-        confirmed = true;
-      } catch (error) {
-        if (error.message.includes("429")) {
-          console.warn(`${colors.red}Server responded with 429 Too Many Requests. Retrying after ${delay}ms delay...${colors.reset}`);
-          await new Promise(resolve => setTimeout(resolve, delay));
-          delay *= 2;
-        } else if (attempt === maxRetries) {
-          throw error;
-        } else {
-          console.warn(`${colors.red}Attempt ${attempt} failed, retrying...${colors.reset}`);
-          await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retrying
-        }
-      }
-    }
-  };
-
-  const allTransactions = [];
-
   if (useList) {
     for (let address of addresses) {
       const recipient = new PublicKey(address);
@@ -136,7 +130,7 @@ async function main() {
         );
 
         console.log(`${colors.cyan}Sending transaction to ${recipient.toString()} (${i + 1}/${numTransactionsPerAddress})${colors.reset}`);
-        allTransactions.push(sendTransactionWithRetry(transaction));
+        await sendTransactionWithRetry(connection, transaction, sender);
         console.log(`${colors.green}Transaction ${i + 1} to ${recipient.toString()} sent${colors.reset}`);
 
         if (i < numTransactionsPerAddress - 1) {
@@ -163,7 +157,7 @@ async function main() {
       );
 
       console.log(`${colors.cyan}Sending transaction to ${recipient.toString()} (${i + 1}/${numTransactionsPerAddress})${colors.reset}`);
-      allTransactions.push(sendTransactionWithRetry(transaction));
+      await sendTransactionWithRetry(connection, transaction, sender);
       console.log(`${colors.green}Transaction ${i + 1} to ${recipient.toString()} sent${colors.reset}`);
 
       if (i < numTransactionsPerAddress - 1) {
@@ -172,7 +166,6 @@ async function main() {
     }
   }
 
-  await Promise.all(allTransactions);
   console.log(`${colors.bright}${colors.green}All transactions have been completed!${colors.reset}`);
 
   const finalBalance = await getBalance(connection, sender.publicKey);
