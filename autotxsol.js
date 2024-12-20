@@ -19,7 +19,7 @@ async function main() {
   const privateKeys = await loadPrivateKey();
   const addresses = await loadAddresses();
 
-  const { network, amount, delay, useList } = await inquirer.prompt([
+  const { network, amount, delay, useList, numTransactionsPerAddress } = await inquirer.prompt([
     {
       type: 'list',
       name: 'network',
@@ -43,6 +43,12 @@ async function main() {
       name: 'useList',
       message: 'Do you want to use the listaddress.txt file?',
       default: true
+    },
+    {
+      type: 'input',
+      name: 'numTransactionsPerAddress',
+      message: 'Enter number of transactions per address:',
+      validate: input => !isNaN(input) && input > 0 ? true : 'Please enter a valid number'
     }
   ]);
 
@@ -57,22 +63,25 @@ async function main() {
   const sender = Keypair.fromSecretKey(bs58.decode(privateKeys[0]));
 
   if (useList) {
-    for (let i = 0; i < addresses.length; i++) {
-      const recipient = new PublicKey(addresses[i]);
-      const transaction = new Transaction().add(
-        SystemProgram.transfer({
-          fromPubkey: sender.publicKey,
-          toPubkey: recipient,
-          lamports: amount * LAMPORTS_PER_SOL
-        })
-      );
+    for (let address of addresses) {
+      const recipient = new PublicKey(address);
+      
+      for (let i = 0; i < numTransactionsPerAddress; i++) {
+        const transaction = new Transaction().add(
+          SystemProgram.transfer({
+            fromPubkey: sender.publicKey,
+            toPubkey: recipient,
+            lamports: amount * LAMPORTS_PER_SOL
+          })
+        );
 
-      console.log(`Sending transaction to ${recipient.toString()}`);
-      await sendAndConfirmTransaction(connection, transaction, [sender]);
-      console.log(`Transaction sent to ${recipient.toString()}`);
+        console.log(`Sending transaction to ${recipient.toString()} (${i + 1}/${numTransactionsPerAddress})`);
+        await sendAndConfirmTransaction(connection, transaction, [sender]);
+        console.log(`Transaction ${i + 1} to ${recipient.toString()} sent`);
 
-      if (i < addresses.length - 1) {
-        await new Promise(resolve => setTimeout(resolve, delay * 1000));
+        if (i < numTransactionsPerAddress - 1) {
+          await new Promise(resolve => setTimeout(resolve, delay * 1000));
+        }
       }
     }
   } else {
@@ -83,18 +92,24 @@ async function main() {
       validate: input => PublicKey.isOnCurve(new PublicKey(input)) ? true : 'Please enter a valid Solana address'
     });
     const recipient = new PublicKey(singleAddress);
+    
+    for (let i = 0; i < numTransactionsPerAddress; i++) {
+      const transaction = new Transaction().add(
+        SystemProgram.transfer({
+          fromPubkey: sender.publicKey,
+          toPubkey: recipient,
+          lamports: amount * LAMPORTS_PER_SOL
+        })
+      );
 
-    const transaction = new Transaction().add(
-      SystemProgram.transfer({
-        fromPubkey: sender.publicKey,
-        toPubkey: recipient,
-        lamports: amount * LAMPORTS_PER_SOL
-      })
-    );
+      console.log(`Sending transaction to ${recipient.toString()} (${i + 1}/${numTransactionsPerAddress})`);
+      await sendAndConfirmTransaction(connection, transaction, [sender]);
+      console.log(`Transaction ${i + 1} to ${recipient.toString()} sent`);
 
-    console.log(`Sending transaction to ${recipient.toString()}`);
-    await sendAndConfirmTransaction(connection, transaction, [sender]);
-    console.log(`Transaction sent to ${recipient.toString()}`);
+      if (i < numTransactionsPerAddress - 1) {
+        await new Promise(resolve => setTimeout(resolve, delay * 1000));
+      }
+    }
   }
 }
 
