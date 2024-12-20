@@ -15,13 +15,11 @@ async function loadAddresses() {
   return addresses;
 }
 
-// Your other script logic here
-
 async function main() {
   const privateKeys = await loadPrivateKey();
   const addresses = await loadAddresses();
 
-  const { network, amount, numTransactions, delay, useList } = await inquirer.prompt([
+  const { network, amount, numTransactions, delay } = await inquirer.prompt([
     {
       type: 'list',
       name: 'network',
@@ -45,25 +43,19 @@ async function main() {
       name: 'delay',
       message: 'Enter delay (in seconds) between transactions:',
       validate: input => !isNaN(input) && input >= 0 ? true : 'Please enter a valid delay'
-    },
-    {
-      type: 'confirm',
-      name: 'useList',
-      message: 'Do you want to use the listaddress.txt file?',
-      default: true
     }
   ]);
 
-  const connection = new Connection(network === 'Mainnet' ? 'https://api.mainnet-beta.solana.com' : network === 'Testnet' ? 'https://api.testnet.solana.com' : 'https://api.devnet.solana.com');
+  const connection = new Connection(
+    network === 'Mainnet'
+      ? 'https://api.mainnet-beta.solana.com'
+      : network === 'Testnet'
+      ? 'https://api.testnet.solana.com'
+      : 'https://api.devnet.solana.com'
+  );
 
   for (let i = 0; i < numTransactions; i++) {
-    const recipient = useList ? new PublicKey(addresses[i % addresses.length]) : new PublicKey(await inquirer.prompt({
-      type: 'input',
-      name: 'singleAddress',
-      message: 'Enter the recipient address:',
-      validate: input => PublicKey.isOnCurve(new PublicKey(input)) ? true : 'Please enter a valid Solana address'
-    }).singleAddress);
-    
+    const recipient = new PublicKey(addresses[i % addresses.length]);
     const sender = Keypair.fromSecretKey(bs58.decode(privateKeys[i % privateKeys.length]));
 
     const transaction = new Transaction().add(
