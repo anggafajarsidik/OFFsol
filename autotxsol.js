@@ -85,6 +85,8 @@ async function main() {
       })
     );
 
+    console.log(`Sending transaction ${i + 1} to ${recipient.toString()}`);
+
     await sendAndConfirmTransaction(connection, transaction, [sender]);
 
     console.log(`Transaction ${i + 1} sent to ${recipient.toString()}`);
