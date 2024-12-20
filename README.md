@@ -66,4 +66,3 @@ address4
 ## Disclaimer
 
 This script is provided as-is, without any guarantees or warranties. Use it at your own risk. Ensure you understand the implications of running the script, especially when using real funds. The author is not responsible for any loss of funds or other damages incurred through the use of this script.
-```
