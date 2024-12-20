@@ -62,10 +62,28 @@ async function main() {
 
   const sender = Keypair.fromSecretKey(bs58.decode(privateKeys[0]));
 
+  const sendTransactionWithRetry = async (transaction) => {
+    let confirmed = false;
+    const maxRetries = 5;
+    for (let attempt = 1; attempt <= maxRetries && !confirmed; attempt++) {
+      try {
+        await sendAndConfirmTransaction(connection, transaction, [sender]);
+        confirmed = true;
+      } catch (error) {
+        if (attempt === maxRetries) {
+          throw error;
+        } else {
+          console.warn(`Attempt ${attempt} failed, retrying...`);
+          await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retrying
+        }
+      }
+    }
+  };
+
   if (useList) {
     for (let address of addresses) {
       const recipient = new PublicKey(address);
-      
+
       for (let i = 0; i < numTransactionsPerAddress; i++) {
         const transaction = new Transaction().add(
           SystemProgram.transfer({
@@ -76,7 +94,7 @@ async function main() {
         );
 
         console.log(`Sending transaction to ${recipient.toString()} (${i + 1}/${numTransactionsPerAddress})`);
-        await sendAndConfirmTransaction(connection, transaction, [sender]);
+        await sendTransactionWithRetry(transaction);
         console.log(`Transaction ${i + 1} to ${recipient.toString()} sent`);
 
         if (i < numTransactionsPerAddress - 1) {
@@ -92,7 +110,7 @@ async function main() {
       validate: input => PublicKey.isOnCurve(new PublicKey(input)) ? true : 'Please enter a valid Solana address'
     });
     const recipient = new PublicKey(singleAddress);
-    
+
     for (let i = 0; i < numTransactionsPerAddress; i++) {
       const transaction = new Transaction().add(
         SystemProgram.transfer({
@@ -103,7 +121,7 @@ async function main() {
       );
 
       console.log(`Sending transaction to ${recipient.toString()} (${i + 1}/${numTransactionsPerAddress})`);
-      await sendAndConfirmTransaction(connection, transaction, [sender]);
+      await sendTransactionWithRetry(transaction);
       console.log(`Transaction ${i + 1} to ${recipient.toString()} sent`);
 
       if (i < numTransactionsPerAddress - 1) {
