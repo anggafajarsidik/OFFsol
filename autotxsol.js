@@ -81,6 +81,7 @@ async function sendTransactionWithRetry(connection, transaction, sender) {
 }
 
 async function main() {
+  console.log(`${colors.cyan}Created by :${colors.reset}`);
   console.log(logo);
   console.log(message);
 
