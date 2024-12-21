@@ -151,7 +151,7 @@ async function main() {
 
         console.log(`${colors.cyan}Sending transaction to ${recipient.toString()} (${i + 1}/${numTransactionsPerAddress})${colors.reset}`);
         const signature = await sendTransactionWithRetry(connection, transaction, sender);
-        console.log(`${colors.green}Transaction ${i + 1} to ${recipient.toString()} sent: ${colors.blue}https://explorer.solana.com/tx/${signature}${colors.reset}`);
+        console.log(`${colors.green}Transaction ${i + 1} to ${recipient.toString()} sent: ${colors.blue}https://solscan.io/tx/${signature}${colors.reset}`);
 
         if (i < numTransactionsPerAddress - 1) {
           await new Promise(resolve => setTimeout(resolve, delay * 1000));
@@ -178,7 +178,7 @@ async function main() {
 
       console.log(`${colors.cyan}Sending transaction to ${recipient.toString()} (${i + 1}/${numTransactionsPerAddress})${colors.reset}`);
       const signature = await sendTransactionWithRetry(connection, transaction, sender);
-      console.log(`${colors.green}Transaction ${i + 1} to ${recipient.toString()} sent: ${colors.blue}https://explorer.solana.com/tx/${signature}${colors.reset}`);
+      console.log(`${colors.green}Transaction ${i + 1} to ${recipient.toString()} sent: ${colors.blue}https://solscan.io/tx/${signature}${colors.reset}`);
 
       if (i < numTransactionsPerAddress - 1) {
         await new Promise(resolve => setTimeout(resolve, delay * 1000));
