@@ -32,16 +32,16 @@ const colors = {
 };
 
 const logo = `
-${colors.bright}${colors.magenta}██████╗ ███████╗███████╗    ██████╗ ██████╗  ██████╗      ██╗███████╗ ██████╗████████╗
-██╔═══██╗██╔════╝██╔════╝    ██╔══██╗██╔══██╗██╔═══██╗     ██║██╔════╝██╔════╝╚══██╔══╝
-██║   ██║█████╗  █████╗      ██████╔╝██████╔╝██║   ██║     ██║█████╗  ██║        ██║   
-██║   ██║██╔══╝  ██╔══╝      ██╔═══╝ ██╔══██╗██║   ██║██   ██║██╔══╝  ██║        ██║   
-╚██████╔╝██║     ██║         ██║     ██║  ██║╚██████╔╝╚█████╔╝███████╗╚██████╗   ██║   
- ╚═════╝ ╚═╝     ╚═╝         ╚═╝     ╚═╝  ╚═════╝  ╚════╝ ╚══════╝ ╚═╝${colors.reset}
+${colors.bright}${colors.magenta} ██████╗ ███████╗███████╗    ███████╗ █████╗ ███╗   ███╗██╗██╗
+██╔═══██╗██╔════╝██╔════╝    ██╔════╝██╔══██╗████╗ ████║██║██║
+██║   ██║█████╗  █████╗      ███████╗███████║██╔████╔██║██║██║
+██║   ██║██╔══╝  ██╔══╝      ╚════██║██╔══██║██║╚██╔╝██║██║██║
+╚██████╔╝██║     ███████╗    ███████║██║  ██║██║ ╚═╝ ██║██║███████╗
+ ╚═════╝ ╚═╝     ╚══════╝    ╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝╚═╝╚══════╝${colors.reset}
 `;
 
 const message = `
-${colors.cyan}We’re here to make blockchain easier and better.${colors.reset}
+${colors.magenta}We’re here to make blockchain easier and better.${colors.reset}
 `;
 
 async function loadPrivateKey() {
@@ -81,11 +81,11 @@ async function sendTransactionWithRetry(connection, transaction, sender) {
 }
 
 async function main() {
-  console.log(`${colors.bright}${colors.green}Script Created by:${colors.reset}`);
+  console.log(`${colors.bright}${colors.magenta}Script Created by:${colors.reset}`);
   console.log(logo);
   console.log(message);
 
-  console.log(`${colors.yellow}Starting the process...${colors.reset}`);
+  console.log(`${colors.magenta}Starting the process...${colors.reset}`);
 
   const privateKeys = await loadPrivateKey();
   const addresses = await loadAddresses();
