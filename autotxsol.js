@@ -67,8 +67,9 @@ async function sendTransactionWithRetry(connection, transaction, sender) {
   let delay = 1000; // Start with 1 second delay
   for (let attempt = 1; attempt <= maxRetries && !confirmed; attempt++) {
     try {
-      await sendAndConfirmTransaction(connection, transaction, [sender]);
+      const signature = await sendAndConfirmTransaction(connection, transaction, [sender]);
       confirmed = true;
+      return signature; // Return the transaction signature on success
     } catch (error) {
       console.warn(`${colors.red}Attempt ${attempt} failed. Retrying after ${delay}ms...${colors.reset}`);
       await new Promise(resolve => setTimeout(resolve, delay));
@@ -149,8 +150,8 @@ async function main() {
         );
 
         console.log(`${colors.cyan}Sending transaction to ${recipient.toString()} (${i + 1}/${numTransactionsPerAddress})${colors.reset}`);
-        await sendTransactionWithRetry(connection, transaction, sender);
-        console.log(`${colors.green}Transaction ${i + 1} to ${recipient.toString()} sent${colors.reset}`);
+        const signature = await sendTransactionWithRetry(connection, transaction, sender);
+        console.log(`${colors.green}Transaction ${i + 1} to ${recipient.toString()} sent: ${colors.blue}https://explorer.solana.com/tx/${signature}${colors.reset}`);
 
         if (i < numTransactionsPerAddress - 1) {
           await new Promise(resolve => setTimeout(resolve, delay * 1000));
@@ -176,8 +177,8 @@ async function main() {
       );
 
       console.log(`${colors.cyan}Sending transaction to ${recipient.toString()} (${i + 1}/${numTransactionsPerAddress})${colors.reset}`);
-      await sendTransactionWithRetry(connection, transaction, sender);
-      console.log(`${colors.green}Transaction ${i + 1} to ${recipient.toString()} sent${colors.reset}`);
+      const signature = await sendTransactionWithRetry(connection, transaction, sender);
+      console.log(`${colors.green}Transaction ${i + 1} to ${recipient.toString()} sent: ${colors.blue}https://explorer.solana.com/tx/${signature}${colors.reset}`);
 
       if (i < numTransactionsPerAddress - 1) {
         await new Promise(resolve => setTimeout(resolve, delay * 1000));
