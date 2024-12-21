@@ -39,7 +39,6 @@ ${colors.bright}${colors.magenta} ██████╗ ███████╗
 ╚██████╔╝██║     ██║         ██║     ██║  ██║██║ ╚═╝ ██║██║███████╗██║   
  ╚═════╝ ╚═╝     ╚═╝         ╚═╝     ╚═╝  ╚═╝╚═╝     ╚═╝╚═╝╚══════╝╚═╝${colors.reset}
 `;
-
 const message = `
 ${colors.magenta}We’re here to make blockchain easier and better.${colors.reset}
 `;
