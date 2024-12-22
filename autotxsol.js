@@ -70,9 +70,11 @@ async function sendTransactionWithRetry(connection, transaction, sender) {
   let confirmed = false;
   const maxRetries = 5;
   let delay = 1000; // Start with 1 second delay
+  let signature = null;
   for (let attempt = 1; attempt <= maxRetries && !confirmed; attempt++) {
     try {
-      await sendAndConfirmTransaction(connection, transaction, [sender]);
+      // Send and confirm the transaction, getting the signature
+      signature = await sendAndConfirmTransaction(connection, transaction, [sender]);
       confirmed = true;
     } catch (error) {
       console.warn(`${colors.red}Attempt ${attempt} failed. Retrying after ${delay}ms...${colors.reset}`);
@@ -83,6 +85,8 @@ async function sendTransactionWithRetry(connection, transaction, sender) {
   if (!confirmed) {
     throw new Error('Failed to send transaction after multiple attempts');
   }
+
+  return signature;  // Return the transaction signature
 }
 
 async function main() {
@@ -156,8 +160,10 @@ async function main() {
         );
 
         console.log(`${colors.cyan}Sending transaction to ${recipient.toString()} (${i + 1}/${numTransactionsPerAddress})${colors.reset}`);
-        await sendTransactionWithRetry(connection, transaction, sender);
-        console.log(`${colors.green}Transaction ${i + 1} to ${recipient.toString()} sent${colors.reset}`);
+        
+        // Send the transaction and get the signature
+        const signature = await sendTransactionWithRetry(connection, transaction, sender);
+        console.log(`${colors.green}Transaction ${i + 1} to ${recipient.toString()} sent! View it on Solscan: ${colors.yellow}https://solscan.io/tx/${signature}${colors.reset}`);
 
         if (i < numTransactionsPerAddress - 1) {
           await new Promise(resolve => setTimeout(resolve, delay * 1000));
@@ -183,8 +189,10 @@ async function main() {
       );
 
       console.log(`${colors.cyan}Sending transaction to ${recipient.toString()} (${i + 1}/${numTransactionsPerAddress})${colors.reset}`);
-      await sendTransactionWithRetry(connection, transaction, sender);
-      console.log(`${colors.green}Transaction ${i + 1} to ${recipient.toString()} sent${colors.reset}`);
+
+      // Send the transaction and get the signature
+      const signature = await sendTransactionWithRetry(connection, transaction, sender);
+      console.log(`${colors.green}Transaction ${i + 1} to ${recipient.toString()} sent! View it on Solscan: ${colors.yellow}https://solscan.io/tx/${signature}${colors.reset}`);
 
       if (i < numTransactionsPerAddress - 1) {
         await new Promise(resolve => setTimeout(resolve, delay * 1000));
