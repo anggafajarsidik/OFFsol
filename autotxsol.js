@@ -44,6 +44,11 @@ const message = `
 ${colors.magenta}We’re here to make blockchain easier and better.${colors.reset}
 `;
 
+// Clear the terminal screen
+function clearTerminal() {
+  console.clear();
+}
+
 async function loadPrivateKey() {
   const data = await fs.readFile('YourPrivateKey.txt', 'utf8');
   const privateKeys = data.split('\n').map(line => line.trim()).filter(line => line.length > 0);
@@ -81,6 +86,8 @@ async function sendTransactionWithRetry(connection, transaction, sender) {
 }
 
 async function main() {
+  clearTerminal();  // Clear the terminal before the rest of the script runs
+
   console.log(`${colors.bright}${colors.magenta}Script Created by:${colors.reset}`);
   console.log(logo);
   console.log(message);
